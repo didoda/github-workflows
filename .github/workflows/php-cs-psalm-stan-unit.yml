@@ -64,7 +64,7 @@ jobs:
         with:
           php-version: '${{ matrix.php-version }}'
           tools: 'composer:v2'
-          extensions: 'mbstring, intl, pdo_${{ fromJson(matrix.db).pdo }}'
+          extensions: 'mbstring, intl, pdo_${{ matrix.db.pdo }}'
           coverage: 'pcov'
           ini-values: 'pcov.directory=., pcov.exclude="~vendor~"'
 

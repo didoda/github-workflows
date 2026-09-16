@@ -84,6 +84,7 @@ jobs:
       - name: 'Install dependencies with Composer'
         run: 'composer install --prefer-dist --no-interaction'
 
+
       - name: 'Run PHP CodeSniffer'
         run: |
           if composer run --list | grep -q "cs-check"; then
@@ -103,16 +104,9 @@ jobs:
     #     if: inputs.databases != ''
     #     run: 'composer dump-autoload --classmap-authoritative --no-cache'
 
-      - name: 'Run PHPUnit with coverage and JUnit report'
+      - name: 'Run PHPUnit with coverage'
         if: inputs.databases != ''
-        run: 'vendor/bin/phpunit --coverage-clover=${{ env.FILE_PREFIX }}-clover.xml --log-junit ${{ env.FILE_PREFIX }}-junit.xml'
-
-      - name: 'Upload test results to Codecov'
-        if: inputs.databases != ''
-        uses: 'codecov/test-results-action@v1'
-        with:
-          files: './${{ env.FILE_PREFIX }}-junit.xml'
-          token: '${{ secrets.CODECOV_TOKEN }}'
+        run: 'vendor/bin/phpunit --coverage-clover=${{ env.FILE_PREFIX }}-clover.xml'
 
       - name: 'Check test coverage'
         if: inputs.databases != ''

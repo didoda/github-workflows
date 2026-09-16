@@ -102,9 +102,9 @@ jobs:
         continue-on-error: true
         run: 'vendor/bin/phpstan analyse --no-progress --error-format=github'
 
-      - name: 'Dump Composer autoloader'
-        if: inputs.databases != ''
-        run: 'composer dump-autoload --classmap-authoritative --no-cache'
+    #   - name: 'Dump Composer autoloader'
+    #     if: inputs.databases != ''
+    #     run: 'composer dump-autoload --classmap-authoritative --no-cache'
 
       - name: 'Run PHPUnit with coverage and JUnit report'
         if: inputs.databases != ''

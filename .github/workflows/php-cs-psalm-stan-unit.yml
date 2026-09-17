@@ -93,7 +93,7 @@ jobs:
       fail-fast: true
       matrix:
         php-version: ${{ fromJSON(inputs.php_versions) }}
-        db: ${{ inputs.databases == '' && fromJSON('[]') || fromJSON(inputs.databases) }}
+        db: ${{ fromJSON(inputs.databases || '[]') }}
 
     env:
       PHP_VERSION: '${{ matrix.php-version }}'

@@ -76,18 +76,7 @@ jobs:
             composer-${{ matrix.php-version }}-
             composer-
 
-      - name: 'Restore Composer vendor cache'
-        id: 'vendor-cache'
-        uses: 'actions/cache@v6'
-        with:
-          path: 'vendor'
-          key: "vendor-${{ github.workflow }}-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock', '**/composer.json') }}"
-          restore-keys: |
-            vendor-${{ github.workflow }}-${{ matrix.php-version }}-
-            vendor-${{ github.workflow }}-
-
       - name: 'Install dependencies with Composer'
-        if: ${{ steps.vendor-cache.outputs.cache-hit != 'true' }}
         run: 'composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader'
 
       - name: 'Run PHP CodeSniffer'
@@ -149,16 +138,6 @@ jobs:
       - name: 'Checkout current revision'
         uses: 'actions/checkout@v7'
 
-      - name: 'Restore Composer vendor cache'
-        id: 'vendor-cache'
-        uses: 'actions/cache@v6'
-        with:
-          path: 'vendor'
-          key: "vendor-${{ github.workflow }}-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock', '**/composer.json') }}"
-          restore-keys: |
-            vendor-${{ github.workflow }}-${{ matrix.php-version }}-
-            vendor-${{ github.workflow }}-
-
       - name: 'Setup PHP'
         uses: 'shivammathur/setup-php@v2'
         with:
@@ -168,11 +147,23 @@ jobs:
           coverage: 'pcov'
           ini-values: 'pcov.directory=., pcov.exclude="~vendor~"'
 
+      - name: 'Discover Composer cache directory'
+        id: 'cachedir'
+        run: echo "path=$(composer global config cache-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: 'Share Composer cache across runs'
+        uses: 'actions/cache@v6'
+        with:
+          path: '${{ steps.cachedir.outputs.path }}'
+          key: "composer-${{ matrix.php-version }}-${{ hashFiles('**/composer.json') }}"
+          restore-keys: |
+            composer-${{ matrix.php-version }}-
+            composer-
+
       - name: 'Install gettext'
         run: 'sudo apt-get install -y gettext'
 
       - name: 'Install dependencies with Composer'
-        if: ${{ steps.vendor-cache.outputs.cache-hit != 'true' }}
         run: 'composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader'
 
       - name: 'Dump Composer autoloader'

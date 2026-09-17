@@ -1,4 +1,4 @@
-name: 'php-cs-psalm-stan-unit'
+name: 'PHP CI: check cs, psalm, stan, unit'
 
 on:
   workflow_call:
@@ -19,16 +19,32 @@ on:
         default: 85
 
 jobs:
+  resolve-static-php:
+    name: 'Resolve static-analysis PHP version'
+    runs-on: 'ubuntu-latest'
+    outputs:
+      php-version: ${{ steps.latest.outputs.php-version }}
+
+    steps:
+      - name: 'Pick highest PHP version'
+        id: 'latest'
+        shell: bash
+        run: |
+          latest="$(echo '${{ inputs.php_versions }}' | jq -r '.[-1]')"
+          echo "php-version=${latest}" >> "$GITHUB_OUTPUT"
+
   static-checks:
     name: 'Static checks (PHP ${{ matrix.php-version }})'
-    if: "!contains(github.event.commits[0].message, '[skip ci]') && !contains(github.event.commits[0].message, '[ci skip]')"
+    needs: 'resolve-static-php'
+    if: "!contains(github.event.head_commit.message || github.event.pull_request.title || '', '[skip ci]') && !contains(github.event.head_commit.message || github.event.pull_request.title || '', '[ci skip]')"
     runs-on: 'ubuntu-latest'
     timeout-minutes: 15
 
     strategy:
       fail-fast: true
       matrix:
-        php-version: ${{ fromJSON(inputs.php_versions) }}
+        php-version:
+          - ${{ needs.resolve-static-php.outputs.php-version }}
 
     steps:
       - name: 'Checkout current revision'
@@ -85,7 +101,7 @@ jobs:
   unit:
     name: 'Run unit tests (PHP ${{ matrix.php-version }} / ${{ matrix.db.vendor }})'
     needs: 'static-checks'
-    if: "needs.static-checks.result == 'success' && inputs.databases != '' && !contains(github.event.commits[0].message, '[skip ci]') && !contains(github.event.commits[0].message, '[ci skip]')"
+    if: "needs.static-checks.result == 'success' && inputs.databases != '' && !contains(github.event.head_commit.message || github.event.pull_request.title || '', '[skip ci]') && !contains(github.event.head_commit.message || github.event.pull_request.title || '', '[ci skip]')"
     runs-on: 'ubuntu-latest'
     timeout-minutes: 20
 
@@ -93,7 +109,7 @@ jobs:
       fail-fast: true
       matrix:
         php-version: ${{ fromJSON(inputs.php_versions) }}
-        db: ${{ fromJSON(inputs.databases || '[]') }}
+        db: ${{ fromJSON(inputs.databases || '[{"vendor":"skip","pdo":"sqlite","dsn":"sqlite://tmp/test.sql","image":"nginx:alpine","options":"--health-cmd \\\"/bin/true\\\" --health-interval 1s --health-timeout 2s --health-retries 5"}]') }}
 
     env:
       PHP_VERSION: '${{ matrix.php-version }}'

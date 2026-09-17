@@ -39,8 +39,6 @@ jobs:
     if: "!contains(github.event.head_commit.message || github.event.pull_request.title || '', '[skip ci]') && !contains(github.event.head_commit.message || github.event.pull_request.title || '', '[ci skip]')"
     runs-on: 'ubuntu-latest'
     timeout-minutes: 15
-    env:
-      SECURITY_SALT: 'ci-test-salt-change-me'
 
     strategy:
       fail-fast: true
@@ -112,11 +110,6 @@ jobs:
       DATABASE_URL: '${{ matrix.db.dsn }}'
       DATABASE_TEST_URL: '${{ matrix.db.dsn }}'
       FILE_PREFIX: '${{ github.run_id }}-${{ matrix.php-version }}-${{ strategy.job-index }}'
-      SECURITY_SALT: 'ci-test-salt-change-me'
-      BEDITA_API_KEY: '12345'
-      BEDITA_API: 'http://127.0.0.1:8080'
-      BEDITA_ADMIN_USR: 'admin'
-      BEDITA_ADMIN_PWD: 'admin'
 
     services:
       db:
